@@ -19,7 +19,7 @@ client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 _pending_deletes: set[asyncio.Task] = set()
 
 
-async def generate_image(prompt: str) -> bytes:
+async def generate_image(prompt: str) -> tuple[bytes, Path]:
     reference_paths = pick_reference_images()
 
     if reference_paths:
@@ -48,7 +48,7 @@ async def generate_image(prompt: str) -> bytes:
     return _decode_and_save(response)
 
 
-def _decode_and_save(response) -> bytes:
+def _decode_and_save(response) -> tuple[bytes, Path]:
     image_bytes = base64.b64decode(response.data[0].b64_json)
 
     settings.GENERATIONS_DIR.mkdir(parents=True, exist_ok=True)
@@ -56,7 +56,7 @@ def _decode_and_save(response) -> bytes:
     out_path.write_bytes(image_bytes)
     _schedule_delete(out_path, settings.GENERATION_RETENTION_SECONDS)
 
-    return image_bytes
+    return image_bytes, out_path
 
 
 def _schedule_delete(path: Path, delay_seconds: int) -> None:

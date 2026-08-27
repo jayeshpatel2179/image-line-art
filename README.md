@@ -1,8 +1,9 @@
 # image-art bot
 
-Telegram bot: send one line of text → it's expanded into a full house-style image prompt
-(Stage A, `gpt-4o`) → you confirm it with a button → it's rendered (Stage B, `gpt-image-2`) →
-the image comes back in chat.
+Telegram bot: send one line of text → it's expanded into a text-free house-style scene prompt
+(Stage A, `gpt-4o`) → you pick where the illustration sits (Left/Right/Center/Bottom) → it's
+rendered with no text (Stage B, `gpt-image-2`) → you can then add the headline text, regenerate
+the whole image, or finish.
 
 ## Setup
 
@@ -26,23 +27,33 @@ python -m bot.main
 ## How it works
 
 1. You send a one-liner in Telegram.
-2. The bot sends it, together with `config/master_prompt.txt`, to `TEXT_MODEL` — this
-   returns one finished image prompt (house style + a scene matching the text's meaning
-   and emotional tone + the two-line headline text to render).
-3. The bot shows you that exact prompt with **Generate / Edit / Cancel** buttons. Nothing
-   is generated until you tap Generate.
-4. **Generate** calls `gpt-image-2` (grounded on 1–2 random images from `images-sample/`
-   for style consistency, when `STYLE_REFERENCE_ENABLED=true`) and sends back the image.
-   **Edit** lets you send a revised line, which restarts at step 2. **Cancel** drops it.
+2. The bot sends it, together with `config/master_prompt.txt`, to `TEXT_MODEL` — this returns
+   one **text-free** scene prompt (house style + a scene matching the text's meaning and
+   emotional tone). No headline text is generated at this stage.
+3. The bot shows you that scene prompt with **Left / Right / Center / Bottom** buttons —
+   pick where the illustration should sit in the frame.
+4. The bot appends the placement clause (`core/placement.py`) to the prompt and calls
+   `gpt-image-2` (grounded on 1–2 random images from `images-sample/` for style consistency,
+   when `STYLE_REFERENCE_ENABLED=true`). The image comes back with **no text on it**, along
+   with **Add Text / Regenerate / Done** buttons.
+5. From there:
+   - **Add Text** — runs an `images.edit` call on that exact saved image, adding only the
+     house-style headline (your original line, verbatim, split across 2-4 lines as needed —
+     see `core/text_overlay.py`) without touching the illustration itself.
+   - **Regenerate** — throws away the current image and renders a brand-new version from the
+     same scene prompt + placement (no text), returning to the Add Text/Regenerate/Done screen.
+   - **Done** — ends the session; whatever image is currently shown is the final result.
 
 ## Notes
 
-- Session state (the pending prompt per chat) is in-memory — restarting the bot clears
-  any unconfirmed prompts. Fine for single-instance use; swap `bot/session_store.py` for
-  Redis if you ever run more than one process.
-- Every generated image is also saved to `storage/generations/`, then auto-deleted from
+- Session state (scene prompt, placement, current image path, per chat) is in-memory —
+  restarting the bot clears any in-progress session. Fine for single-instance use; swap
+  `bot/session_store.py` for Redis if you ever run more than one process.
+- Every generated/edited image is saved to `storage/generations/`, then auto-deleted from
   disk `GENERATION_RETENTION_SECONDS` after creation (default 300s / 5 min). This only
-  clears the local disk copy — it doesn't unsend the photo from the Telegram chat.
+  clears the local disk copy — it doesn't unsend the photo from the Telegram chat. If you
+  tap **Add Text** more than 5 minutes after the base image was generated, the base file
+  will already be gone and you'll be asked to start over.
 - To change the visual style itself, edit `config/master_prompt.txt` — nothing else needs
   to change.
 
