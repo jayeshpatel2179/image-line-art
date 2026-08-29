@@ -121,7 +121,8 @@ async def _add_text(query, context, chat_id, session) -> None:
     await query.edit_message_caption(caption="📝 Adding text...")
 
     try:
-        image_bytes, new_image_path = await add_text_overlay(image_path, session["raw_text"])
+        size = get_image_size(session["orientation"])
+        image_bytes, new_image_path = await add_text_overlay(image_path, session["raw_text"], size)
     except Exception as exc:  # noqa: BLE001
         await context.bot.send_message(chat_id, f"Adding text failed: {exc}")
         return

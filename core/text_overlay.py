@@ -24,7 +24,7 @@ def _build_text_prompt(raw_text: str) -> str:
     )
 
 
-async def add_text_overlay(base_image_path: Path, raw_text: str) -> tuple[bytes, Path]:
+async def add_text_overlay(base_image_path: Path, raw_text: str, size: str) -> tuple[bytes, Path]:
     prompt = _build_text_prompt(raw_text)
 
     with open(base_image_path, "rb") as f:
@@ -32,7 +32,7 @@ async def add_text_overlay(base_image_path: Path, raw_text: str) -> tuple[bytes,
             model=settings.IMAGE_MODEL,
             image=[f],
             prompt=prompt,
-            size=settings.IMAGE_SIZE,
+            size=size,
             quality=settings.IMAGE_QUALITY,
         )
 
