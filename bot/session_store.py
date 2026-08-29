@@ -12,6 +12,7 @@ def set_scene_prompt(chat_id: int, raw_text: str, scene_prompt: str) -> None:
         "raw_text": raw_text,
         "scene_prompt": scene_prompt,
         "placement": None,
+        "orientation": None,
         "image_path": None,
         "has_text": False,
     }
@@ -21,6 +22,12 @@ def set_placement(chat_id: int, placement: str) -> None:
     session = _sessions.get(chat_id)
     if session is not None:
         session["placement"] = placement
+
+
+def set_orientation(chat_id: int, orientation: str) -> None:
+    session = _sessions.get(chat_id)
+    if session is not None:
+        session["orientation"] = orientation
 
 
 def set_current_image(chat_id: int, image_path) -> None:

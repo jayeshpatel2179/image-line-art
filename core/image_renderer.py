@@ -19,7 +19,7 @@ client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 _pending_deletes: set[asyncio.Task] = set()
 
 
-async def generate_image(prompt: str) -> tuple[bytes, Path]:
+async def generate_image(prompt: str, size: str) -> tuple[bytes, Path]:
     reference_paths = pick_reference_images()
 
     if reference_paths:
@@ -30,7 +30,7 @@ async def generate_image(prompt: str) -> tuple[bytes, Path]:
                     model=settings.IMAGE_MODEL,
                     image=files,
                     prompt=prompt,
-                    size=settings.IMAGE_SIZE,
+                    size=size,
                     quality=settings.IMAGE_QUALITY,
                 )
                 return _decode_and_save(response)
@@ -42,7 +42,7 @@ async def generate_image(prompt: str) -> tuple[bytes, Path]:
     response = await client.images.generate(
         model=settings.IMAGE_MODEL,
         prompt=prompt,
-        size=settings.IMAGE_SIZE,
+        size=size,
         quality=settings.IMAGE_QUALITY,
     )
     return _decode_and_save(response)

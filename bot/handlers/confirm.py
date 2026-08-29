@@ -5,8 +5,18 @@ from telegram.ext import ContextTypes
 
 from bot import session_store
 from core.image_renderer import generate_image
+from core.orientation import apply_orientation, get_image_size
 from core.placement import apply_placement
 from core.text_overlay import add_text_overlay
+
+ORIENTATION_KEYBOARD = InlineKeyboardMarkup(
+    [
+        [
+            InlineKeyboardButton("🖼️ Horizontal (16:9)", callback_data="orient:horizontal"),
+            InlineKeyboardButton("📱 Vertical (9:16)", callback_data="orient:vertical"),
+        ]
+    ]
+)
 
 REVIEW_KEYBOARD_NO_TEXT = InlineKeyboardMarkup(
     [
@@ -41,7 +51,16 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     data = query.data
 
     if data.startswith("place:"):
-        await _generate_base_image(query, context, chat_id, session, placement=data.split(":", 1)[1])
+        session_store.set_placement(chat_id, data.split(":", 1)[1])
+        await query.edit_message_text(
+            "Horizontal or vertical image?",
+            reply_markup=ORIENTATION_KEYBOARD,
+        )
+        return
+
+    if data.startswith("orient:"):
+        session_store.set_orientation(chat_id, data.split(":", 1)[1])
+        await _generate_base_image(query, context, chat_id, session)
         return
 
     if data == "add_text":
@@ -49,11 +68,10 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return
 
     if data == "regenerate":
-        placement = session.get("placement")
-        if placement is None:
+        if session.get("placement") is None or session.get("orientation") is None:
             await query.edit_message_caption(caption="Nothing to regenerate yet.")
             return
-        await _generate_base_image(query, context, chat_id, session, placement=placement)
+        await _generate_base_image(query, context, chat_id, session)
         return
 
     if data == "done":
@@ -62,18 +80,21 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return
 
 
-async def _generate_base_image(query, context, chat_id, session, placement: str) -> None:
-    session_store.set_placement(chat_id, placement)
-    final_prompt = apply_placement(session["scene_prompt"], placement)
+async def _generate_base_image(query, context, chat_id, session) -> None:
+    placement = session["placement"]
+    orientation = session["orientation"]
 
-    status_text = f"🎨 Generating the image ({placement})..."
+    final_prompt = apply_orientation(apply_placement(session["scene_prompt"], placement), orientation)
+    size = get_image_size(orientation)
+
+    status_text = f"🎨 Generating the image ({placement}, {orientation})..."
     if query.message.photo:
         await query.edit_message_caption(caption=status_text)
     else:
         await query.edit_message_text(status_text)
 
     try:
-        image_bytes, image_path = await generate_image(final_prompt)
+        image_bytes, image_path = await generate_image(final_prompt, size)
     except Exception as exc:  # noqa: BLE001
         await context.bot.send_message(chat_id, f"Generation failed: {exc}")
         return

@@ -17,13 +17,14 @@ SUPPORTING ICONS to match the meaning and emotional tone of the input text.
 - Supporting props/icons (laptops, arrows, currency symbols, speech bubbles, charts, everyday
   objects) are drawn in the exact same single-line style and placed around the character to
   visually reinforce the concept.
-- Aspect ratio: 16:9 landscape.
 - Overall mood: clean, modern, calm, editorial, quietly witty — a "whiteboard explainer" feel.
 - ABSOLUTELY NO TEXT: no words, letters, numbers, speech-bubble text, signage text, or any
   written characters anywhere in the image. Screens and speech bubbles must be left blank or
   filled with a simple squiggle/scribble line, never real text.
 - Do NOT mention or decide the composition/placement of the character in the frame (left, right,
   center, bottom, top) — that is chosen separately and appended after your output.
+- Do NOT mention or decide the aspect ratio / orientation of the canvas (landscape or portrait)
+  — that is also chosen separately and appended after your output.
 
 ## YOUR TASK, given ONE line of user text:
 1. Detect the emotional register of the text (e.g. motivational, contrarian/"myth-busting",
@@ -40,8 +41,8 @@ SUPPORTING ICONS to match the meaning and emotional tone of the input text.
 
 ## OUTPUT FORMAT (fill in the bracketed part, keep everything else close to verbatim):
 "A single continuous-line hand-drawn illustration in dark charcoal ink on a flat warm cream
-background, 16:9 landscape. [SCENE DESCRIPTION: character, pose, action, and 1-3 supporting
-props/icons drawn in the same monoline style]. No text, no words, no letters, no numbers, no
-lettering of any kind anywhere in the image — screens and speech bubbles are left blank or
-filled with a simple scribble line only. Minimalist, editorial, no shading, no fill, no color
-inside the linework, clean whiteboard-explainer aesthetic."
+background. [SCENE DESCRIPTION: character, pose, action, and 1-3 supporting props/icons drawn
+in the same monoline style]. No text, no words, no letters, no numbers, no lettering of any
+kind anywhere in the image — screens and speech bubbles are left blank or filled with a simple
+scribble line only. Minimalist, editorial, no shading, no fill, no color inside the linework,
+clean whiteboard-explainer aesthetic."
